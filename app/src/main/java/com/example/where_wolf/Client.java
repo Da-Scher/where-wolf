@@ -53,6 +53,7 @@ public class Client {
     }
 
     public String sendMessageToServer(String msg) {
+        // TODO: generate a checksum for the message
         pwOut.println(msg);
         try {
              return brIn.readLine();
@@ -61,11 +62,29 @@ public class Client {
         }
     }
 
-    public JSONObject sendJoinRequest() {
+    public PlayerRole sendJoinRequest() {
         pwOut.println("");
         try{
-            String input = brIn.readLine();
-            return new JSONObject(input);
+            // read the response from the server
+            String response = brIn.readLine();
+            // convert the response to JSON
+            JSONObject joInput = new JSONObject(response);
+            // create an object for the player role.
+            // define the variables for the player role.
+            String sJsonName = (String) joInput.get("sName");
+            int iJsonId = (int) joInput.get("iId");
+            boolean bJsonAlive = (boolean) joInput.get("bAlive");
+            int iFaction = (int) joInput.get("iFaction");
+            int iPowerTarget = (int) joInput.get("iPowerTarget");
+            int iAccusationTarget = (int) joInput.get("iAccusationTarget");
+            int iVoteTarget = (int) joInput.get("iVoteTarget");
+            return new PlayerRole(sJsonName,
+                    iJsonId,
+                    bJsonAlive,
+                    iFaction,
+                    iPowerTarget,
+                    iAccusationTarget,
+                    iVoteTarget);
         } catch (IOException error) {
             error.printStackTrace();
             System.out.println(error);
@@ -73,7 +92,7 @@ public class Client {
         } catch (JSONException error) {
             error.printStackTrace();
             System.out.println(error);
-            throw new RuntimeException(error);
+            return null;
         }
     }
 }

@@ -18,4 +18,20 @@ public class PlayerRole {
     // int iVoteTarget is a role action being used on the character referenced by iId
     int iVoteTarget;
 
+    PlayerRole(String sName,
+               int iId,
+               boolean bAlive,
+               int iFaction,
+               int iPowerTarget,
+               int iAccusationTarget,
+               int iVoteTarget) {
+        sName             = sName;
+        iId               = iId;
+        bAlive            = bAlive;
+        iFaction          = iFaction;
+        iPowerTarget      = iPowerTarget;
+        iAccusationTarget = iAccusationTarget;
+        iVoteTarget       = iVoteTarget;
+    }
+
 }
