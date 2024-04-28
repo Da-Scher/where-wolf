@@ -13,6 +13,15 @@
         android:theme="@style/Theme.Wherewolf"
         tools:targetApi="31">
         <activity
+            android:name=".TimedActivity3"
+            android:exported="false" />
+        <activity
+            android:name=".TimedActivity2"
+            android:exported="false" />
+        <activity
+            android:name=".TimedActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
@@ -21,6 +30,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".JoinGameActivity"
+            android:exported="false" />
+
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
