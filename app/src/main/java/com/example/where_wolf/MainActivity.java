@@ -23,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void handleJoinButton(){
         Button join_button = (Button) findViewById((R.id.buttonJoin));
-        join_button.setText("Join Game");
+        join_button.setText("Join");
         join_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
