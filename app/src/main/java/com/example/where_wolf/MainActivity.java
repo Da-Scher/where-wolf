@@ -41,35 +41,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 connectToServer();
-                startActivity(new Intent(MainActivity.this, JoinGameActivity.class));
+                //startActivity(new Intent(MainActivity.this, JoinGameActivity.class));
             }
         } );
     }
 
     private void connectToServer(){
-        //TextView status = (TextView) findViewById(R.id.textConnectionStatus);
+        TextView status = (TextView) findViewById(R.id.textConnectionStatus);
         String TAG = "MainActivity";
         new Thread(new Client()).start();
-
-//        try {
-//            Log.d(TAG, "Trying to connect...");
-//            Socket socket = new Socket("10.0.2.2", 6061);
-//            Log.d(TAG, "creating socket...");
-//            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//            String response = in.readLine();
-//            //status.setText("Connected!");
-//            socket.close();
-//        } catch (IOException e) {
-//            //status.setText("Failed");
-//            Log.e(TAG, "Error connecting to server: " + e.getMessage());
-//            Log.e(TAG, "Error connecting to server: " + e.getMessage());
-//            Log.e(TAG, "Error connecting to server: " + e.getMessage());
-//        } catch (NetworkOnMainThreadException e){
-//            e.printStackTrace();
-//            System.out.println(e);
-//            //Log.e(TAG, e);
-//            //Log.e(TAG, "Error connecting to server: " + e.getMessage());
-//        }
+        status.setText("Client started");
 
     }
 
@@ -89,29 +70,99 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private class Client implements Runnable {
+    public class Client implements Runnable {
+        private Socket socket;
+        private BufferedReader bufferedReader;
+        private BufferedWriter bufferedWriter;
+        private String username;
+
+        public Client(Socket socket, String username) {
+            try {
+                this.socket = socket;
+                this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+                this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                this.username = username;
+            } catch (IOException e) {
+                closeEverything(socket, bufferedReader, bufferedWriter);
+            }
+        }
+
+        public void sendMessage() {
+            try {
+                bufferedWriter.write(username);
+                bufferedWriter.newLine();
+                bufferedWriter.flush();
+
+                //TODO: get input from user here
+                while (socket.isConnected()) {
+//                    String messageToSend =;
+//                    bufferedWriter.write(username + ": " + messageToSend);
+                    bufferedWriter.newLine();
+                    bufferedWriter.flush();
+                }
+            } catch (IOException e) {
+                closeEverything(socket, bufferedReader, bufferedWriter);
+            }
+        }
+
+        public void listenForMessage() {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    String TAG = "MainActivity";
+                    String msgFromServer;
+
+                    while (socket.isConnected()) {
+                        try {
+                            msgFromServer = bufferedReader.readLine();
+                            Log.d(TAG, "MSGFROMSERVER: " + msgFromServer);
+                        } catch (IOException e) {
+                            closeEverything(socket, bufferedReader, bufferedWriter);
+                        }
+                    }
+                }
+            }).start();
+        }
+
+        public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
+            String TAG = "MainActivity";
+            try {
+                if (bufferedReader != null) {
+                    bufferedReader.close();
+                }
+                if (bufferedWriter != null) {
+                    bufferedWriter.close();
+                }
+                if (socket != null) {
+                    socket.close();
+                }
+            } catch (IOException e) {
+                Log.e(TAG, "error closing a client handler");
+            }
+        }
 
         @Override
         public void run() {
             String TAG = "MainActivity";
-            try{
+            try {
                 int local_port = 6061;
                 Log.d(TAG, "Trying to connect...");
+                username = "I am Username";
                 Socket socket = new Socket("10.0.2.2", 6061);
-                Log.d(TAG, "created socket.");
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                Log.d(TAG, "created reader");
-                String response = in.readLine();
-                Log.d(TAG, response);
-                //status.setText("Connected!");
+                Log.d(TAG, "created clientside socket.");
+                Client client = new Client(socket, username);
                 Log.d(TAG, "connection successful");
-                socket.close();
+                client.listenForMessage();
+                client.sendMessage();
+                //status.setText("Connected!")
+//                socket.close();
 
-            } catch (Exception e){
+            } catch (Exception e) {
                 Log.e(TAG, e.getMessage());
             }
         }
     }
+
 
     public class Server implements Runnable {
 
@@ -127,7 +178,6 @@ public class MainActivity extends AppCompatActivity {
             try {
                 int server_port = 6060;
                 String server_ip = "10.0.2.15";
-                //ServerSocket the_socket = new ServerSocket();
                 Log.d(TAG, "socket created");
                 this.serverSocket.bind(new InetSocketAddress(server_ip, server_port));
                 Log.d(TAG, "server set up");
@@ -140,12 +190,6 @@ public class MainActivity extends AppCompatActivity {
 
                     Thread thread = new Thread(clientHandler);
                     thread.start();
-                    //String message = in.readLine();
-//                    String message = "zzz";
-//                    clientSocket.getOutputStream().write(message.getBytes());
-//                    BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-
-//                    clientSocket.close();
                     Log.d(TAG, "Closed Connection");
                 }
 
@@ -172,13 +216,14 @@ public class MainActivity extends AppCompatActivity {
     //creates a new thread and waits for messages from client sockets.
     //handles breadcasting messages back to client sockets and closing sockets.
     public class ClientHandler implements Runnable{
-        public static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
+        public ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
         private Socket socket;
         private BufferedReader bufferedReader;
         private BufferedWriter bufferedWriter;
         String clientUsername;
 
         public ClientHandler(Socket socket) {
+            String TAG = "MainActivity";
             try {
                 this.socket = socket;
                 this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
