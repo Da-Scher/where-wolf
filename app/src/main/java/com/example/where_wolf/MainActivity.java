@@ -1,8 +1,15 @@
 package com.example.where_wolf;
 
+import androidx.annotation.UiContext;
+import androidx.annotation.UiThread;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.content.Intent;
+import android.os.Handler;
+import android.os.Message;
+import android.os.NetworkOnMainThreadException;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -13,16 +20,43 @@ import android.widget.Button;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.List;
 
 import android.util.Log;
 
 public class MainActivity extends AppCompatActivity {
+
+    private Handler handler = new Handler(msg -> {
+        // Handle messages from the background thread
+        if (msg.getData() != null) {
+            Log.d("MainActivity", "AT HANDLER");
+
+            String message = msg.getData().getString("key_message");
+            Log.d("MainActivity", message);
+            // Start the new activity here with the message
+            if(message.equals("VD")){
+                Intent intent = new Intent(MainActivity.this, TimedActivity.class);
+                //intent.putExtra("EXTRA_MESSAGE", message);
+                startActivity(intent);
+            }else if(message.equals("VV") || message.equals("WV")){
+                Intent intent = new Intent(MainActivity.this, TimedActivity2.class);
+                //intent.putExtra("EXTRA_MESSAGE", message);
+                startActivity(intent);
+            }else if(message.equals("STARTGAME")){
+                Intent intent = new Intent(MainActivity.this, JoinGameActivity.class);
+                //intent.putExtra("EXTRA_MESSAGE", message);
+                startActivity(intent);
+            }
+        }
+        return true;
+    });
 
     static ArrayList<String> connectionsList;
     static ArrayAdapter<String> adapter;
@@ -33,10 +67,22 @@ public class MainActivity extends AppCompatActivity {
         ListView peerList = (ListView) findViewById((R.id.peerListView));
         handleJoinButton();
         handleHostButton();
+        handleStartButton();
 
         connectionsList = new ArrayList<>();
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, connectionsList);
         peerList.setAdapter(adapter);
+    }
+
+    private void handleStartButton() {
+        Button startGameButton = (Button) findViewById((R.id.startGame));
+        startGameButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //startGameButton.setText("StartingGame");
+                //startActivity(new Intent(MainActivity.this, JoinGameActivity.class));
+            }
+        } );
     }
 
     private void handleJoinButton(){
@@ -56,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
         EditText usernameBox = findViewById(R.id.usernameBox);
         String username = String.valueOf(usernameBox.getText());
         String TAG = "MainActivity:ConnectToServer";
-        new Thread(new Client(username)).start();
+        new Thread(new Client(username, handler, "xxx")).start();
         status.setText("Client started");
     }
 
@@ -68,23 +114,29 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 //Server the_server = new Server();
-                new Thread(new Server()).start();
+                new Thread(new Server(handler, "xxx")).start();
                 status.setText("Server started");
 
             }
         } );
     }
+
+
     public class Client implements Runnable {
+
         private Socket socket;
         private BufferedReader bufferedReader;
         private BufferedWriter bufferedWriter;
         private String username;
-
+        private Handler handler;
         private ListView lv;
+        private String message;
 
-        public Client(String username){
-            this.lv = (ListView) findViewById(R.id.peerListView);
+        public Client(String username, Handler handler, String message){
+            this.lv = findViewById(R.id.peerListView);
             this.username = username;
+            this.handler = handler;
+            this.message = message;
         }
 
         public void sendMessage() {
@@ -121,10 +173,18 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     String TAG = "MainActivity:lisForMes";
                     String msgFromServer;
-
                     while (socket.isConnected()) {
                         try {
+
                             msgFromServer = bufferedReader.readLine();
+                            Log.d(TAG, "MSGFROMSERVER: " + msgFromServer);
+                            Message msg = handler.obtainMessage();
+                            Bundle bundle = new Bundle();
+                            message = msgFromServer;
+                            bundle.putString("key_message", message);
+                            msg.setData(bundle);
+                            handler.sendMessage(msg);
+                            Log.d(TAG, "Handler MSG sent");
                             if(!msgFromServer.isEmpty())
                                 Log.d(TAG, "MSGFROMSERVER: " + msgFromServer);{
                                 char type = msgFromServer.charAt(0);
@@ -194,18 +254,32 @@ public class MainActivity extends AppCompatActivity {
 
 
     public class Server implements Runnable {
-
+        private Button startButton;
         private ServerSocket serverSocket;
 
         public ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
 
-        //        public Server(ServerSocket serverSocket) {
-//            this.serverSocket = serverSocket;
+        public Server(Handler handler, String message) {
+            this.serverSocket = serverSocket;
+        }
+
+//        public void startGame(){
+//            new Thread(clientHandlers.get(0).broadcastMessage("STARTGAME")).start();
 //        }
+
         @Override
         public void run() {
             String TAG = "MainActivity:Server:Run";
             //TextView status = (TextView) findViewById(R.id.textConnectionStatus);
+            this.startButton = findViewById(R.id.startGame);
+            this.startButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    startButton.setText("StartingGame");
+                    clientHandlers.get(0).is_start = true;
+//                    startActivity(new Intent(MainActivity.this, JoinGameActivity.class));
+                }
+            } );
             try {
                 int server_port = 6060;
                 String server_ip = "10.0.2.15";
@@ -247,6 +321,9 @@ public class MainActivity extends AppCompatActivity {
     //creates a new thread and waits for messages from client sockets.
     //handles breadcasting messages back to client sockets and closing sockets.
     public class ClientHandler implements Runnable{
+        boolean is_start;
+        private Button startButton;
+
         ArrayList<ClientHandler> clientHandlers;
         private Socket socket;
         private BufferedReader bufferedReader;
@@ -256,6 +333,7 @@ public class MainActivity extends AppCompatActivity {
         public ClientHandler(Socket socket, ArrayList<ClientHandler> clientHandlers) {
             String TAG = "MainActivity:ClHand:Con";
             try {
+                this.is_start=false;
                 ListView lv = (ListView) findViewById(R.id.peerListView);
                 this.clientHandlers = clientHandlers;
                 this.socket = socket;
@@ -290,6 +368,9 @@ public class MainActivity extends AppCompatActivity {
                     if(!messageFromClient.isEmpty()){
                         Log.e(TAG, "message not empty");
                         broadcastMessage(messageFromClient);
+                    } else if (is_start) {
+                        broadcastMessage("STARTGAME");
+                        is_start=false;
                     }
                 } catch (IOException e) {
                     closeEverything(socket, bufferedReader, bufferedWriter);
@@ -312,16 +393,14 @@ public class MainActivity extends AppCompatActivity {
         public void broadcastMessage(String messageToSend) {
             String TAG = "MainActivity:BrCastMes";
             int i = 0;
-            Log.e(TAG, "messageToSend: " + messageToSend);
             for (ClientHandler clientHandler : clientHandlers){
                 Log.e(TAG, "Server: " + "client Username" + i + " " + clientHandler.clientUsername);
                 i++;
                 try {
-                    //if (clientHandler.clientUsername.equals(clientUsername)) {
-                    clientHandler.bufferedWriter.write(messageToSend);
-                    clientHandler.bufferedWriter.newLine();
-                    clientHandler.bufferedWriter.flush();
-
+                    //if (!clientHandler.clientUsername.equals(clientUsername)) {
+                        clientHandler.bufferedWriter.write(messageToSend);
+                        clientHandler.bufferedWriter.newLine();
+                        clientHandler.bufferedWriter.flush();
                     //}
                 } catch (IOException e) {
                     closeEverything(socket, bufferedReader, bufferedWriter);
