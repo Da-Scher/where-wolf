@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
                             Log.d(TAG, "MSGFROMSERVER: " + msgFromServer);
                         } catch (IOException e) {
                             closeEverything(socket, bufferedReader, bufferedWriter);
-                            Log.d(TAG, "Error in listen for messages);
+                            Log.d(TAG, "Error listen " + e.getMessage());
                         }
                     }
                 }
@@ -148,14 +148,14 @@ public class MainActivity extends AppCompatActivity {
                 int local_port = 6061;
                 Log.d(TAG, "Trying to connect...");
                 username = "I am Username";
-                Socket socket = new Socket("10.0.2.2", 6061);
+                socket = new Socket("10.0.2.2", 6061);
                 Log.d(TAG, "created clientside socket.");
 //                Client client = new Client(socket, username);
                 this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
                 this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 Log.d(TAG, "connection successful");
-                this.listenForMessage();
-                this.sendMessage();
+                listenForMessage();
+                sendMessage();
                 //status.setText("Connected!")
 //                socket.close();
 
@@ -181,7 +181,8 @@ public class MainActivity extends AppCompatActivity {
                 int server_port = 6060;
                 String server_ip = "10.0.2.15";
                 Log.d(TAG, "socket created");
-                this.serverSocket.bind(new InetSocketAddress(server_ip, server_port));
+                serverSocket = new ServerSocket();
+                serverSocket.bind(new InetSocketAddress(server_ip, server_port));
                 Log.d(TAG, "server set up");
 
                 while (!serverSocket.isClosed()) {
@@ -192,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
 
                     Thread thread = new Thread(clientHandler);
                     thread.start();
-                    Log.d(TAG, "Closed Connection");
+                    Log.d(TAG, "End of Server Run Function");
                 }
 
             } catch (Exception e){
@@ -232,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
                 this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 this.clientUsername = bufferedReader.readLine();
                 clientHandlers.add(this);
-                Log.e(TAG, "Server: " + clientUsername + " has disconnected");
+                Log.e(TAG, "Server: " + clientUsername + " has connected");
                 //broadcastMessage();
             } catch(IOException e) {
                 closeEverything(socket, bufferedReader, bufferedWriter);
