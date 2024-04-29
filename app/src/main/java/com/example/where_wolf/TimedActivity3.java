@@ -3,10 +3,12 @@ package com.example.where_wolf;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class TimedActivity3 extends AppCompatActivity {
@@ -33,7 +35,21 @@ public class TimedActivity3 extends AppCompatActivity {
             }
             @Override
             public void onFinish(){
-                startActivity(new Intent(TimedActivity3.this, TimedActivity.class));
+//                String resultData = "GODAY";
+//                Intent resultIntent = new Intent();
+//                resultIntent.putExtra("KEY_RESULT", resultData);
+//                setResult(RESULT_OK, resultIntent);
+//                finish();
+
+                EditText input = (EditText) findViewById((R.id.editTextAttackTarget));
+                ArrayList<String> resultData = new ArrayList<>();
+                String resultData2 = input.getText().toString();
+                String resultData1 = "GODAY";
+                resultData.add(resultData1);
+                resultData.add(resultData2);
+                Intent resultIntent = new Intent();
+                resultIntent.putStringArrayListExtra("string_list", resultData );
+                setResult(RESULT_OK, resultIntent);
                 finish();
             }
         }.start();

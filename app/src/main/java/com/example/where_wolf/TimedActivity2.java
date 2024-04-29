@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.widget.TextView;
+import android.widget.EditText;
+import java.util.ArrayList;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -33,7 +35,15 @@ public class TimedActivity2 extends AppCompatActivity {
             }
             @Override
             public void onFinish(){
-                startActivity(new Intent(TimedActivity2.this, TimedActivity3.class));
+                EditText input = (EditText) findViewById((R.id.editTextAccuseTarget));
+                ArrayList<String> resultData = new ArrayList<>();
+                String resultData2 = input.getText().toString();
+                String resultData1 = "GONIGHT";
+                resultData.add(resultData1);
+                resultData.add(resultData2);
+                Intent resultIntent = new Intent();
+                resultIntent.putStringArrayListExtra("string_list", resultData );
+                setResult(RESULT_OK, resultIntent);
                 finish();
             }
         }.start();
