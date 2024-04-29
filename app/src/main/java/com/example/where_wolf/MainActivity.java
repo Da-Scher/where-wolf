@@ -48,16 +48,24 @@ public class MainActivity extends AppCompatActivity {
                 //intent.putExtra("EXTRA_MESSAGE", message);
                 //startActivity(intent);
                 startActivityForResult(intent, 6);
-            }else if(message.equals("VV") || message.equals("WV")){
+                //message = "VV";
+            }else if(message.equals("GOEVE")){
                 Intent intent = new Intent(MainActivity.this, TimedActivity2.class);
                 //intent.putExtra("EXTRA_MESSAGE", message);
-                startActivity(intent);
-            }else if(message.equals("STARTGAME")){
+                startActivityForResult(intent, 6);                //message = "WV";
+            }else if(message.equals("GONIGHT")){
+                Intent intent = new Intent(MainActivity.this, TimedActivity3.class);
+                //intent.putExtra("EXTRA_MESSAGE", message);
+                startActivityForResult(intent, 6);
+                //message = "STARTGAME";
+            }else if(message.equals("STARTGAME") || message.equals("GODAY")){
                 Intent intent = new Intent(MainActivity.this, TimedActivity.class);
                 //intent.putExtra("EXTRA_MESSAGE", message);
                 startActivityForResult(intent, 6);
                 //startActivity(intent);
+                //message = "VD";
             }
+
         }
         return true;
     });
@@ -169,6 +177,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void sendMessage() {
+            String TAG = "MainAc:CliSendMes";
             try {
                 bufferedWriter.write(username);
                 bufferedWriter.newLine();
@@ -178,8 +187,11 @@ public class MainActivity extends AppCompatActivity {
                 while (socket.isConnected()) {
                     if(!this.resultMessage.isEmpty()) {
                         String messageToSend = resultMessage;
-                        bufferedWriter.write(username + ": " + messageToSend);
+                        bufferedWriter.write(messageToSend);
                         resultMessage = "";
+                        Log.d(TAG, "CLRHandler: " + handler.toString());
+                        handler.removeMessages(0);
+                        Log.d(TAG, "CURHandler: " + handler.toString());
                     }
                     bufferedWriter.newLine();
                     bufferedWriter.flush();
@@ -212,6 +224,7 @@ public class MainActivity extends AppCompatActivity {
                             msgFromServer = bufferedReader.readLine();
                             Log.d(TAG, "MSGFROMSERVER: " + msgFromServer);
                             Message msg = handler.obtainMessage();
+
                             Bundle bundle = new Bundle();
                             message = msgFromServer;
                             bundle.putString("key_message", message);

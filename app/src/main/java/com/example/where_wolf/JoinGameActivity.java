@@ -34,7 +34,7 @@ public class JoinGameActivity extends AppCompatActivity {
         start_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view){
-                startActivity(new Intent(JoinGameActivity.this, TimedActivity.class));
+                //startActivity(new Intent(JoinGameActivity.this, TimedActivity.class));
                 finish();
             }
         } );

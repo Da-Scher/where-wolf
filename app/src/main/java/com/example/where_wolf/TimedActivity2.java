@@ -33,7 +33,10 @@ public class TimedActivity2 extends AppCompatActivity {
             }
             @Override
             public void onFinish(){
-                startActivity(new Intent(TimedActivity2.this, TimedActivity3.class));
+                String resultData = "GONIGHT";
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra("KEY_RESULT", resultData);
+                setResult(RESULT_OK, resultIntent);
                 finish();
             }
         }.start();

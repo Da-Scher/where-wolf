@@ -34,7 +34,7 @@ public class TimedActivity extends AppCompatActivity {
             @Override
             public void onFinish(){
                 //startActivity(new Intent(TimedActivity.this, MainActivity.class));
-                String resultData = "This STR";
+                String resultData = "GOEVE";
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra("KEY_RESULT", resultData);
                 setResult(RESULT_OK, resultIntent);
