@@ -1,13 +1,8 @@
 package com.example.where_wolf;
 
-import androidx.annotation.UiContext;
-import androidx.annotation.UiThread;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Context;
 import android.os.Bundle;
-import android.content.Intent;
-import android.os.NetworkOnMainThreadException;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -18,20 +13,19 @@ import android.widget.Button;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.List;
 
 import android.util.Log;
 
 public class MainActivity extends AppCompatActivity {
 
     static ArrayList<String> connectionsList;
+    static ArrayAdapter<String> adapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,8 +35,7 @@ public class MainActivity extends AppCompatActivity {
         handleHostButton();
 
         connectionsList = new ArrayList<>();
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, connectionsList);
+        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, connectionsList);
         peerList.setAdapter(adapter);
     }
 
@@ -81,15 +74,16 @@ public class MainActivity extends AppCompatActivity {
             }
         } );
     }
-
-
     public class Client implements Runnable {
         private Socket socket;
         private BufferedReader bufferedReader;
         private BufferedWriter bufferedWriter;
         private String username;
 
+        private ListView lv;
+
         public Client(String username){
+            this.lv = (ListView) findViewById(R.id.peerListView);
             this.username = username;
         }
 
@@ -111,6 +105,16 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        public void updateListView(String msg, ListView listView) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    connectionsList.add(msg);
+                    listView.setAdapter(adapter);
+                }
+            });
+        }
+
         public void listenForMessage() {
             new Thread(new Runnable() {
                 @Override
@@ -121,7 +125,24 @@ public class MainActivity extends AppCompatActivity {
                     while (socket.isConnected()) {
                         try {
                             msgFromServer = bufferedReader.readLine();
-                            Log.d(TAG, "MSGFROMSERVER: " + msgFromServer);
+                            if(!msgFromServer.isEmpty())
+                                Log.d(TAG, "MSGFROMSERVER: " + msgFromServer);{
+                                char type = msgFromServer.charAt(0);
+                                switch(type) {
+                                    case 'P':
+                                        connectionsList.clear();
+                                        String rest = msgFromServer.substring(1);
+                                        String list[] = rest.split(",");
+                                        for (String name: list) {
+                                            Log.e(TAG, "Member: " + name);
+                                            updateListView(name, lv);
+                                        }
+
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
                         } catch (IOException e) {
                             closeEverything(socket, bufferedReader, bufferedWriter);
                             Log.d(TAG, "Error listen " + e.getMessage());
@@ -178,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
 
         public ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
 
-//        public Server(ServerSocket serverSocket) {
+        //        public Server(ServerSocket serverSocket) {
 //            this.serverSocket = serverSocket;
 //        }
         @Override
@@ -235,6 +256,7 @@ public class MainActivity extends AppCompatActivity {
         public ClientHandler(Socket socket, ArrayList<ClientHandler> clientHandlers) {
             String TAG = "MainActivity:ClHand:Con";
             try {
+                ListView lv = (ListView) findViewById(R.id.peerListView);
                 this.clientHandlers = clientHandlers;
                 this.socket = socket;
                 this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
@@ -242,15 +264,17 @@ public class MainActivity extends AppCompatActivity {
                 this.clientUsername = bufferedReader.readLine();
                 clientHandlers.add(this);
 
-
+                updateListView(clientUsername + " " +socket.getInetAddress().toString() + ":" + socket.getPort(), lv);
+                String updateList = "P";
                 Log.e(TAG, "Server: " + clientUsername + " has connected");
                 int i = 0;
-                for (ClientHandler clientHandler : clientHandlers){
+                for (ClientHandler clientHandler : clientHandlers) {
+                    updateList += clientHandler.clientUsername + ",";
                     Log.e(TAG, "Server: " + "client Username" + i + " " + clientHandler.clientUsername);
                     i++;
                 }
-
-                //broadcastMessage();
+                Log.e(TAG, "updateList: " + updateList);
+                broadcastMessage(updateList);
             } catch(IOException e) {
                 closeEverything(socket, bufferedReader, bufferedWriter);
             }
@@ -274,20 +298,31 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        public void updateListView(String msg, ListView listView) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    connectionsList.add(msg);
+                    listView.setAdapter(adapter);
+                }
+            });
+        }
+
         //broadcast a message to all clients
         public void broadcastMessage(String messageToSend) {
             String TAG = "MainActivity:BrCastMes";
             int i = 0;
+            Log.e(TAG, "messageToSend: " + messageToSend);
             for (ClientHandler clientHandler : clientHandlers){
                 Log.e(TAG, "Server: " + "client Username" + i + " " + clientHandler.clientUsername);
                 i++;
                 try {
-                    if (!clientHandler.clientUsername.equals(clientUsername)) {
-                        clientHandler.bufferedWriter.write(messageToSend);
-                        clientHandler.bufferedWriter.newLine();
-                        clientHandler.bufferedWriter.flush();
+                    //if (clientHandler.clientUsername.equals(clientUsername)) {
+                    clientHandler.bufferedWriter.write(messageToSend);
+                    clientHandler.bufferedWriter.newLine();
+                    clientHandler.bufferedWriter.flush();
 
-                    }
+                    //}
                 } catch (IOException e) {
                     closeEverything(socket, bufferedReader, bufferedWriter);
                 }
