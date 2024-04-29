@@ -160,6 +160,7 @@ public class MainActivity extends AppCompatActivity {
         private Handler handler;
         private ListView lv;
         private String message;
+        private String role;
 
         public Client(String username, Handler handler, String message){
             this.lv = findViewById(R.id.peerListView);
@@ -316,9 +317,13 @@ public class MainActivity extends AppCompatActivity {
             this.startButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    startButton.setText("StartingGame");
-                    clientHandlers.get(0).is_start = true;
+                    if(clientHandlers.size() < 2) {
+                        startButton.setText("NotEnoughPlayers");
+                    } else {
+                        startButton.setText("StartingGame");
+                        clientHandlers.get(0).is_start = true;
 //                    startActivity(new Intent(MainActivity.this, JoinGameActivity.class));
+                    }
                 }
             } );
             try {
