@@ -3,6 +3,7 @@ package com.example.where_wolf;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -33,8 +34,13 @@ public class TimedActivity3 extends AppCompatActivity {
             }
             @Override
             public void onFinish(){
-                startActivity(new Intent(TimedActivity3.this, TimedActivity.class));
+                EditText input = (EditText) findViewById((R.id.editTextAttackTarget));
+                String resultData = input.getText().toString();
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra("KEY_RESULT", resultData);
+                setResult(RESULT_OK, resultIntent);
                 finish();
+                //startActivity(new Intent(TimedActivity3.this, TimedActivity.class));
             }
         }.start();
     }

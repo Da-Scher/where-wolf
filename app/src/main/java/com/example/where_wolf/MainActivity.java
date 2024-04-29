@@ -51,9 +51,10 @@ public class MainActivity extends AppCompatActivity {
             }else if(message.equals("VV") || message.equals("WV")){
                 Intent intent = new Intent(MainActivity.this, TimedActivity2.class);
                 //intent.putExtra("EXTRA_MESSAGE", message);
-                startActivity(intent);
+                //startActivity(intent);
+                startActivityForResult(intent, 6);
             }else if(message.equals("STARTGAME")){
-                Intent intent = new Intent(MainActivity.this, TimedActivity.class);
+                Intent intent = new Intent(MainActivity.this, TimedActivity2.class);
                 //intent.putExtra("EXTRA_MESSAGE", message);
                 startActivityForResult(intent, 6);
                 //startActivity(intent);
