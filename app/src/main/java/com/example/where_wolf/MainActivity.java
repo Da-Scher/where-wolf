@@ -33,6 +33,8 @@ import android.util.Log;
 
 public class MainActivity extends AppCompatActivity {
 
+    Client the_client;
+
     private Handler handler = new Handler(msg -> {
         // Handle messages from the background thread
         if (msg.getData() != null) {
@@ -44,19 +46,37 @@ public class MainActivity extends AppCompatActivity {
             if(message.equals("VD")){
                 Intent intent = new Intent(MainActivity.this, TimedActivity.class);
                 //intent.putExtra("EXTRA_MESSAGE", message);
-                startActivity(intent);
+                //startActivity(intent);
+                startActivityForResult(intent, 6);
             }else if(message.equals("VV") || message.equals("WV")){
                 Intent intent = new Intent(MainActivity.this, TimedActivity2.class);
                 //intent.putExtra("EXTRA_MESSAGE", message);
                 startActivity(intent);
             }else if(message.equals("STARTGAME")){
-                Intent intent = new Intent(MainActivity.this, JoinGameActivity.class);
+                Intent intent = new Intent(MainActivity.this, TimedActivity.class);
                 //intent.putExtra("EXTRA_MESSAGE", message);
-                startActivity(intent);
+                startActivityForResult(intent, 6);
+                //startActivity(intent);
             }
         }
         return true;
     });
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d("MainActivity", "here");
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 6) {
+            if (resultCode == RESULT_OK) {
+                String resultData = data.getStringExtra("KEY_RESULT");
+                Log.d("MainActivity", resultData);
+                this.the_client.testing(resultData);
+                Log.d("MainActivity", "Ran test");
+            } else if (resultCode == RESULT_CANCELED) {
+                // Handle the case where the user canceled
+            }
+        }
+    }
 
     static ArrayList<String> connectionsList;
     static ArrayAdapter<String> adapter;
@@ -102,7 +122,14 @@ public class MainActivity extends AppCompatActivity {
         EditText usernameBox = findViewById(R.id.usernameBox);
         String username = String.valueOf(usernameBox.getText());
         String TAG = "MainActivity:ConnectToServer";
-        new Thread(new Client(username, handler, "xxx")).start();
+        Client c = new Client(username, handler, "xxx");
+        this.the_client = c;
+        if(this.the_client == c){
+            Log.d("MainAcitvity", "reference ok");
+        }else{
+            Log.d("MainAcitvity", "reference not  ok");
+        }
+        new Thread(c).start();
         status.setText("Client started");
     }
 
@@ -229,6 +256,11 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        public void testing(String str){
+            Log.d("MainActivity", "THE RESULT:");
+            Log.d("MainActivity", str);
+        }
+
         @Override
         public void run() {
             String TAG = "MainActivityClient:Run";
@@ -236,6 +268,7 @@ public class MainActivity extends AppCompatActivity {
                 int local_port = 6061;
                 Log.d(TAG, "Trying to connect...");
                 socket = new Socket("10.0.2.2", 6061);
+                this.socket = socket;
                 Log.d(TAG, "created clientside socket.");
 //                Client client = new Client(socket, username);
                 this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
