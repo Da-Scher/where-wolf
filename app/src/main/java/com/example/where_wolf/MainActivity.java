@@ -51,7 +51,6 @@ public class MainActivity extends AppCompatActivity {
         String TAG = "MainActivity";
         new Thread(new Client()).start();
         status.setText("Client started");
-
     }
 
     private void handleHostButton(){
@@ -76,16 +75,16 @@ public class MainActivity extends AppCompatActivity {
         private BufferedWriter bufferedWriter;
         private String username;
 
-        public Client(Socket socket, String username) {
-            try {
-                this.socket = socket;
-                this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-                this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                this.username = username;
-            } catch (IOException e) {
-                closeEverything(socket, bufferedReader, bufferedWriter);
-            }
-        }
+//        public Client(Socket socket, String username) {
+//            try {
+//                this.socket = socket;
+//                this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+//                this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+//                this.username = username;
+//            } catch (IOException e) {
+//                closeEverything(socket, bufferedReader, bufferedWriter);
+//            }
+//        }
 
         public void sendMessage() {
             try {
@@ -94,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
                 bufferedWriter.flush();
 
                 //TODO: get input from user here
-                while (socket.isConnected()) {
+                while (this.socket.isConnected()) {
 //                    String messageToSend =;
 //                    bufferedWriter.write(username + ": " + messageToSend);
                     bufferedWriter.newLine();
@@ -118,6 +117,7 @@ public class MainActivity extends AppCompatActivity {
                             Log.d(TAG, "MSGFROMSERVER: " + msgFromServer);
                         } catch (IOException e) {
                             closeEverything(socket, bufferedReader, bufferedWriter);
+                            Log.d(TAG, "Error in listen for messages);
                         }
                     }
                 }
@@ -150,10 +150,12 @@ public class MainActivity extends AppCompatActivity {
                 username = "I am Username";
                 Socket socket = new Socket("10.0.2.2", 6061);
                 Log.d(TAG, "created clientside socket.");
-                Client client = new Client(socket, username);
+//                Client client = new Client(socket, username);
+                this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+                this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 Log.d(TAG, "connection successful");
-                client.listenForMessage();
-                client.sendMessage();
+                this.listenForMessage();
+                this.sendMessage();
                 //status.setText("Connected!")
 //                socket.close();
 
@@ -168,9 +170,9 @@ public class MainActivity extends AppCompatActivity {
 
         private ServerSocket serverSocket;
 
-        public Server(ServerSocket serverSocket) {
-            this.serverSocket = serverSocket;
-        }
+//        public Server(ServerSocket serverSocket) {
+//            this.serverSocket = serverSocket;
+//        }
         @Override
         public void run() {
             String TAG = "MainActivity";
