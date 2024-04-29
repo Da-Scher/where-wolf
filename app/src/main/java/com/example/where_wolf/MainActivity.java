@@ -1,11 +1,17 @@
 package com.example.where_wolf;
 
+import androidx.annotation.UiContext;
+import androidx.annotation.UiThread;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.content.Intent;
 import android.os.NetworkOnMainThreadException;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Button;
 
@@ -19,19 +25,25 @@ import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.List;
 
 import android.util.Log;
 
 public class MainActivity extends AppCompatActivity {
 
+    static ArrayList<String> connectionsList;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        ListView peerList = (ListView) findViewById((R.id.peerListView));
         handleJoinButton();
         handleHostButton();
 
+        connectionsList = new ArrayList<>();
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, connectionsList);
+        peerList.setAdapter(adapter);
     }
 
     private void handleJoinButton(){
@@ -48,8 +60,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void connectToServer(){
         TextView status = (TextView) findViewById(R.id.textConnectionStatus);
-        String TAG = "MainActivity";
-        new Thread(new Client()).start();
+        EditText usernameBox = findViewById(R.id.usernameBox);
+        String username = String.valueOf(usernameBox.getText());
+        String TAG = "MainActivity:ConnectToServer";
+        new Thread(new Client(username)).start();
         status.setText("Client started");
     }
 
@@ -75,16 +89,9 @@ public class MainActivity extends AppCompatActivity {
         private BufferedWriter bufferedWriter;
         private String username;
 
-//        public Client(Socket socket, String username) {
-//            try {
-//                this.socket = socket;
-//                this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-//                this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//                this.username = username;
-//            } catch (IOException e) {
-//                closeEverything(socket, bufferedReader, bufferedWriter);
-//            }
-//        }
+        public Client(String username){
+            this.username = username;
+        }
 
         public void sendMessage() {
             try {
@@ -93,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
                 bufferedWriter.flush();
 
                 //TODO: get input from user here
-                while (this.socket.isConnected()) {
+                while (socket.isConnected()) {
 //                    String messageToSend =;
 //                    bufferedWriter.write(username + ": " + messageToSend);
                     bufferedWriter.newLine();
@@ -108,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    String TAG = "MainActivity";
+                    String TAG = "MainActivity:lisForMes";
                     String msgFromServer;
 
                     while (socket.isConnected()) {
@@ -125,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
-            String TAG = "MainActivity";
+            String TAG = "MainAct:Cli:clEveryth";
             try {
                 if (bufferedReader != null) {
                     bufferedReader.close();
@@ -143,11 +150,10 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void run() {
-            String TAG = "MainActivity";
+            String TAG = "MainActivityClient:Run";
             try {
                 int local_port = 6061;
                 Log.d(TAG, "Trying to connect...");
-                username = "I am Username";
                 socket = new Socket("10.0.2.2", 6061);
                 Log.d(TAG, "created clientside socket.");
 //                Client client = new Client(socket, username);
@@ -170,12 +176,14 @@ public class MainActivity extends AppCompatActivity {
 
         private ServerSocket serverSocket;
 
+        public ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
+
 //        public Server(ServerSocket serverSocket) {
 //            this.serverSocket = serverSocket;
 //        }
         @Override
         public void run() {
-            String TAG = "MainActivity";
+            String TAG = "MainActivity:Server:Run";
             //TextView status = (TextView) findViewById(R.id.textConnectionStatus);
             try {
                 int server_port = 6060;
@@ -189,15 +197,14 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "waiting for a connection");
                     Socket clientSocket = serverSocket.accept();
                     Log.d(TAG, "Accepted new connection");
-                    ClientHandler clientHandler = new ClientHandler(clientSocket);
-
+                    ClientHandler clientHandler = new ClientHandler(clientSocket, clientHandlers);
                     Thread thread = new Thread(clientHandler);
                     thread.start();
                     Log.d(TAG, "End of Server Run Function");
                 }
 
             } catch (Exception e){
-                //statuss.setText("Didn't start server");
+                //status.setText("Didn't start server");
                 Log.e(TAG, "Error starting server: " + e.getMessage());
                 Log.e(TAG, "Error starting server: " + e.getMessage());
                 Log.e(TAG, "Error starting server: " + e.getMessage());
@@ -205,7 +212,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void closeServerSocket() {
-            String TAG = "MainActivity";
+            String TAG = "MainActivity:ClServSock";
             try {
                 if (serverSocket != null) {
                     serverSocket.close();
@@ -219,21 +226,30 @@ public class MainActivity extends AppCompatActivity {
     //creates a new thread and waits for messages from client sockets.
     //handles breadcasting messages back to client sockets and closing sockets.
     public class ClientHandler implements Runnable{
-        public ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
+        ArrayList<ClientHandler> clientHandlers;
         private Socket socket;
         private BufferedReader bufferedReader;
         private BufferedWriter bufferedWriter;
         String clientUsername;
 
-        public ClientHandler(Socket socket) {
-            String TAG = "MainActivity";
+        public ClientHandler(Socket socket, ArrayList<ClientHandler> clientHandlers) {
+            String TAG = "MainActivity:ClHand:Con";
             try {
+                this.clientHandlers = clientHandlers;
                 this.socket = socket;
                 this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
                 this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 this.clientUsername = bufferedReader.readLine();
                 clientHandlers.add(this);
+
+
                 Log.e(TAG, "Server: " + clientUsername + " has connected");
+                int i = 0;
+                for (ClientHandler clientHandler : clientHandlers){
+                    Log.e(TAG, "Server: " + "client Username" + i + " " + clientHandler.clientUsername);
+                    i++;
+                }
+
                 //broadcastMessage();
             } catch(IOException e) {
                 closeEverything(socket, bufferedReader, bufferedWriter);
@@ -241,12 +257,16 @@ public class MainActivity extends AppCompatActivity {
         }
         @Override
         public void run() {
+            String TAG = "MainAct:CliHand:Run";
             String messageFromClient;
 
             while (socket.isConnected()) {
                 try {
                     messageFromClient = bufferedReader.readLine();
-                    broadcastMessage(messageFromClient);
+                    if(!messageFromClient.isEmpty()){
+                        Log.e(TAG, "message not empty");
+                        broadcastMessage(messageFromClient);
+                    }
                 } catch (IOException e) {
                     closeEverything(socket, bufferedReader, bufferedWriter);
                     break;
@@ -256,12 +276,17 @@ public class MainActivity extends AppCompatActivity {
 
         //broadcast a message to all clients
         public void broadcastMessage(String messageToSend) {
+            String TAG = "MainActivity:BrCastMes";
+            int i = 0;
             for (ClientHandler clientHandler : clientHandlers){
+                Log.e(TAG, "Server: " + "client Username" + i + " " + clientHandler.clientUsername);
+                i++;
                 try {
                     if (!clientHandler.clientUsername.equals(clientUsername)) {
                         clientHandler.bufferedWriter.write(messageToSend);
                         clientHandler.bufferedWriter.newLine();
                         clientHandler.bufferedWriter.flush();
+
                     }
                 } catch (IOException e) {
                     closeEverything(socket, bufferedReader, bufferedWriter);
@@ -270,13 +295,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void removeClientHandler() {
-            String TAG = "MainActivity";
+            String TAG = "MainAct:rmCliHndlr";
             clientHandlers.remove(this);
             Log.e(TAG, "Server: " + clientUsername + " has disconnected");
         }
 
         public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
-            String TAG = "MainActivity";
+            String TAG = "MainAct:CliHndl:clEvery";
             removeClientHandler();
             try {
                 if (bufferedReader != null) {

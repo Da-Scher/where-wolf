@@ -1,203 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#4C298A"
-    android:textAlignment="gravity"
-    android:textDirection="ltr"
     tools:context=".MainActivity">
 
-    <View
-        android:id="@+id/viewNameBar"
-        android:layout_width="409dp"
-        android:layout_height="96dp"
-        android:background="#C87649"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/textTitle"
-        android:layout_width="288dp"
-        android:layout_height="39dp"
-        android:layout_marginStart="19dp"
-        android:layout_marginTop="17dp"
-        android:layout_marginBottom="17dp"
-        android:fontFamily="@font/chelsea_market"
-        android:text="Where Wolf"
-        android:textSize="34sp"
-        app:layout_constraintBottom_toBottomOf="@+id/viewNameBar"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <Button
-        android:id="@+id/buttonWifiToggle"
-        android:layout_width="123dp"
-        android:layout_height="51dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="16dp"
-        android:fontFamily="@font/chelsea_market"
-        android:text="Wifi On"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageViewWifi" />
-
-    <ImageView
-        android:id="@+id/imageViewWifi"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="32dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/viewNameBar"
-        app:srcCompat="@color/black" />
-
-    <TextView
-        android:id="@+id/textConnectionStatus"
+        android:id="@+id/buttonJoin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
-        android:fontFamily="@font/chelsea_market"
-        android:text="wifi off"
-        android:textColor="#FFFFFF"
-        app:layout_constraintBottom_toBottomOf="@+id/imageViewWifi"
-        app:layout_constraintEnd_toEndOf="@+id/imageViewWifi"
-        app:layout_constraintHorizontal_bias="0.548"
-        app:layout_constraintStart_toStartOf="@+id/imageViewWifi"
-        app:layout_constraintTop_toTopOf="@+id/imageViewWifi"
-        app:layout_constraintVertical_bias="0.445" />
-
-    <ScrollView
-        android:id="@+id/scrollViewPeerList"
-        android:layout_width="143dp"
-        android:layout_height="281dp"
-        android:background="#000000"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.891"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/viewPeerListTitle"
-        app:layout_constraintVertical_bias="0.0">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-    </ScrollView>
-
-    <view
-        android:id="@+id/viewPeerListTitle"
-        class="androidx.appcompat.widget.ActionMenuView"
-        android:layout_width="139dp"
-        android:layout_height="22dp"
-        android:layout_marginTop="24dp"
-        android:background="#000000"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.882"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/viewNameBar" />
-
-    <TextView
-        android:id="@+id/textPeersMessage"
-        android:layout_width="140dp"
-        android:layout_height="22dp"
-        android:fontFamily="@font/chelsea_market"
-        android:text="Peers:"
-        android:textColor="#FFFFFF"
-        app:layout_constraintBottom_toBottomOf="@+id/viewPeerListTitle"
-        app:layout_constraintStart_toStartOf="@+id/viewPeerListTitle"
-        app:layout_constraintTop_toTopOf="@+id/viewPeerListTitle" />
-
-    <Button
-        android:id="@+id/buttonFindPeers"
-        android:layout_width="122dp"
-        android:layout_height="47dp"
-        android:layout_marginTop="16dp"
-        android:fontFamily="@font/chelsea_market"
-        android:text="Find Peers"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.11"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonWifiToggle"
-        app:layout_constraintVertical_bias="0.031" />
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="55dp"
+        android:text="Join" />
 
     <Button
         android:id="@+id/buttonHostGame"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="45dp"
-        android:layout_marginBottom="4dp"
-        android:fontFamily="@font/chelsea_market"
-        android:text="Host"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.678"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/viewMMTextInput" />
+        android:layout_alignBaseline="@+id/buttonJoin"
+        android:layout_alignBottom="@+id/buttonJoin"
+        android:layout_centerHorizontal="true"
+        android:text="Host" />
+
+    <TextView
+        android:id="@+id/textConnectionStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginEnd="28dp"
+        android:layout_marginTop="55dp"
+        android:text="Connection Status" />
+
+    <ListView
+        android:id="@+id/peerListView"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/buttonJoin"
+        android:layout_marginTop="25dp"
+        android:background="@android:color/holo_orange_light" />
+
+    <ListView
+        android:id="@+id/rolesListView"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_below="@+id/peerListView"
+        android:layout_marginTop="25dp"
+        android:background="@android:color/holo_blue_light" />
+
+    <EditText
+        android:id="@+id/usernameBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:layout_below="@+id/rolesListView"
+        android:layout_above="@+id/startGame" />
 
     <Button
-        android:id="@+id/buttonJoin"
-        android:layout_width="91dp"
+        android:id="@+id/startGame"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="100dp"
-        android:layout_marginTop="44dp"
-        android:layout_marginEnd="32dp"
-        android:fontFamily="@font/chelsea_market"
-        android:text="Join"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/buttonHostGame"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/viewMMTextInput"
-        app:layout_constraintVertical_bias="0.0" />
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:text="Start Game" />
 
-    <view
-        android:id="@+id/viewMMTextInput"
-        class="androidx.appcompat.widget.ActionMenuView"
-        android:layout_width="409dp"
-        android:layout_height="159dp"
-        android:background="#887849CD"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/viewNameBar"
-        app:layout_constraintVertical_bias="0.796" />
-
-    <EditText
-        android:id="@+id/editTextName"
-        android:layout_width="0dp"
+    <TextView
+        android:id="@+id/connectionTitle"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:ems="10"
-        android:hint="Name"
-        android:inputType="text"
-        app:layout_constraintBottom_toBottomOf="@+id/viewMMTextInput"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/viewMMTextInput"
-        app:layout_constraintVertical_bias="0.254" />
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="15dp"
+        android:text="Connection Status"
+        android:textAlignment="center"
+        android:textColor="@android:color/holo_blue_dark"
+        android:textSize="18sp"
+        android:textStyle="italic" />
 
-    <EditText
-        android:id="@+id/editTextPassword"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginBottom="32dp"
-        android:ems="10"
-        android:hint="Password (If Required)"
-        android:inputType="textPassword"
-        app:layout_constraintBottom_toBottomOf="@+id/viewMMTextInput"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextName" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</RelativeLayout>
