@@ -9,12 +9,17 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Button;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+
 import android.util.Log;
 
 public class MainActivity extends AppCompatActivity {
@@ -108,7 +113,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class Server implements Runnable {
+    public class Server implements Runnable {
+
+        private ServerSocket serverSocket;
+
+        public Server(ServerSocket serverSocket) {
+            this.serverSocket = serverSocket;
+        }
         @Override
         public void run() {
             String TAG = "MainActivity";
@@ -116,22 +127,25 @@ public class MainActivity extends AppCompatActivity {
             try {
                 int server_port = 6060;
                 String server_ip = "10.0.2.15";
-                ServerSocket the_socket = new ServerSocket();
+                //ServerSocket the_socket = new ServerSocket();
                 Log.d(TAG, "socket created");
-                the_socket.bind(new InetSocketAddress(server_ip, server_port));
+                this.serverSocket.bind(new InetSocketAddress(server_ip, server_port));
                 Log.d(TAG, "server set up");
 
-
-                while (true) {
+                while (!serverSocket.isClosed()) {
                     Log.d(TAG, "waiting for a connection");
-                    Socket clientSocket = the_socket.accept();
-                    Log.d(TAG, "Accepted connection");
-                    //String message = in.readLine();
-                    String message = "zzz";
-                    clientSocket.getOutputStream().write(message.getBytes());
-                    //BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                    Socket clientSocket = serverSocket.accept();
+                    Log.d(TAG, "Accepted new connection");
+                    ClientHandler clientHandler = new ClientHandler(clientSocket);
 
-                    clientSocket.close();
+                    Thread thread = new Thread(clientHandler);
+                    thread.start();
+                    //String message = in.readLine();
+//                    String message = "zzz";
+//                    clientSocket.getOutputStream().write(message.getBytes());
+//                    BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+
+//                    clientSocket.close();
                     Log.d(TAG, "Closed Connection");
                 }
 
@@ -142,7 +156,93 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(TAG, "Error starting server: " + e.getMessage());
             }
         }
+
+        public void closeServerSocket() {
+            String TAG = "MainActivity";
+            try {
+                if (serverSocket != null) {
+                    serverSocket.close();
+                }
+            }catch (IOException e) {
+                Log.e(TAG, "Error closing server socket: " + e.getMessage());
+            }
+        }
     }
 
+    //creates a new thread and waits for messages from client sockets.
+    //handles breadcasting messages back to client sockets and closing sockets.
+    public class ClientHandler implements Runnable{
+        public static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
+        private Socket socket;
+        private BufferedReader bufferedReader;
+        private BufferedWriter bufferedWriter;
+        String clientUsername;
 
+        public ClientHandler(Socket socket) {
+            try {
+                this.socket = socket;
+                this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+                this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                this.clientUsername = bufferedReader.readLine();
+                clientHandlers.add(this);
+                Log.e(TAG, "Server: " + clientUsername + " has disconnected");
+                //broadcastMessage();
+            } catch(IOException e) {
+                closeEverything(socket, bufferedReader, bufferedWriter);
+            }
+        }
+        @Override
+        public void run() {
+            String messageFromClient;
+
+            while (socket.isConnected()) {
+                try {
+                    messageFromClient = bufferedReader.readLine();
+                    broadcastMessage(messageFromClient);
+                } catch (IOException e) {
+                    closeEverything(socket, bufferedReader, bufferedWriter);
+                    break;
+                }
+            }
+        }
+
+        //broadcast a message to all clients
+        public void broadcastMessage(String messageToSend) {
+            for (ClientHandler clientHandler : clientHandlers){
+                try {
+                    if (!clientHandler.clientUsername.equals(clientUsername)) {
+                        clientHandler.bufferedWriter.write(messageToSend);
+                        clientHandler.bufferedWriter.newLine();
+                        clientHandler.bufferedWriter.flush();
+                    }
+                } catch (IOException e) {
+                    closeEverything(socket, bufferedReader, bufferedWriter);
+                }
+            }
+        }
+
+        public void removeClientHandler() {
+            String TAG = "MainActivity";
+            clientHandlers.remove(this);
+            Log.e(TAG, "Server: " + clientUsername + " has disconnected");
+        }
+
+        public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
+            String TAG = "MainActivity";
+            removeClientHandler();
+            try {
+                if (bufferedReader != null) {
+                    bufferedReader.close();
+                }
+                if (bufferedWriter != null) {
+                    bufferedWriter.close();
+                }
+                if (socket != null) {
+                    socket.close();
+                }
+            } catch (IOException e) {
+                Log.e(TAG, "error closing a client handler");
+            }
+        }
+    }
 }
