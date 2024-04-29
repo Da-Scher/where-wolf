@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d("MainActivity", "AT HANDLER");
 
             String message = msg.getData().getString("key_message");
-            Log.d("MainActivity", message);
+            Log.d("MainAcHandler", message);
             // Start the new activity here with the message
             if(message.equals("VD")){
                 Intent intent = new Intent(MainActivity.this, TimedActivity.class);
@@ -150,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     public class Client implements Runnable {
+        String resultMessage;
 
         private Socket socket;
         private BufferedReader bufferedReader;
@@ -164,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
             this.username = username;
             this.handler = handler;
             this.message = message;
+            this.resultMessage="";
         }
 
         public void sendMessage() {
@@ -174,10 +176,14 @@ public class MainActivity extends AppCompatActivity {
 
                 //TODO: get input from user here
                 while (socket.isConnected()) {
-//                    String messageToSend =;
-//                    bufferedWriter.write(username + ": " + messageToSend);
+                    if(!this.resultMessage.isEmpty()) {
+                        String messageToSend = resultMessage;
+                        bufferedWriter.write(username + ": " + messageToSend);
+                        resultMessage = "";
+                    }
                     bufferedWriter.newLine();
                     bufferedWriter.flush();
+
                 }
             } catch (IOException e) {
                 closeEverything(socket, bufferedReader, bufferedWriter);
@@ -259,6 +265,7 @@ public class MainActivity extends AppCompatActivity {
         public void testing(String str){
             Log.d("MainActivity", "THE RESULT:");
             Log.d("MainActivity", str);
+            this.resultMessage = str;
         }
 
         @Override
@@ -398,7 +405,7 @@ public class MainActivity extends AppCompatActivity {
             while (socket.isConnected()) {
                 try {
                     messageFromClient = bufferedReader.readLine();
-                    if(!messageFromClient.isEmpty()){
+                    if(!(messageFromClient == null) && !(messageFromClient.isEmpty())){
                         Log.e(TAG, "message not empty");
                         broadcastMessage(messageFromClient);
                     } else if (is_start) {
