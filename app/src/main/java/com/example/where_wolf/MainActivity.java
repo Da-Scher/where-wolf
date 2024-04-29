@@ -76,8 +76,13 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 6) {
             if (resultCode == RESULT_OK) {
-                String resultData = data.getStringExtra("KEY_RESULT");
-                Log.d("MainActivity", resultData);
+                Log.d("MainActivity", "here2");
+                //String resultData = data.getStringExtra("KEY_RESULT");
+
+                ArrayList<String> resultData2 = data.getStringArrayListExtra("string_list");
+                String resultData = resultData2.get(0);
+                Log.d("MainActivity", resultData2.get(0));
+                Log.d("MainActivity", resultData2.get(1));
                 this.the_client.testing(resultData);
                 Log.d("MainActivity", "Ran test");
             } else if (resultCode == RESULT_CANCELED) {
