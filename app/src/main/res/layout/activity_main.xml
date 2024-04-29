@@ -57,7 +57,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:hint="EnterUsername"
+        android:hint="Enter Username:"
         android:inputType="textPersonName"
         android:layout_below="@+id/rolesListView"
         android:layout_above="@+id/startGame" />
